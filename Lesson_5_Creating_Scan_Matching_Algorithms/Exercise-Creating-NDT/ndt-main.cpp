@@ -270,7 +270,7 @@ void NewtonsMethod(PointT point, double theta, Cell cell, Eigen::MatrixBase<Deri
 
 	// TODO: calcualte the 1 x 1 exponential matrix which uses q, and S inverse
 	Eigen::MatrixXd EXP(1,1);
-	EXP(0,0) = exp(-0.5 * q.tranpose() * S_inv * q);
+	EXP(0,0) = exp(-0.5 * q.transpose() * S_inv * q);
 
 	// TODO: calculate the matrix g which uses q, exponential, S inverse, and partial derivatives
 	Eigen::MatrixXd g(3,1);
@@ -557,12 +557,12 @@ int main(){
 	
 						// TODO: calculate the new point pointTran, by transforming point by x, y, and theta 
 						// 	   pointTran(new x, new y, point.z), values below should be nonzero
-						PointT pointTran(0, 0, point.z);
+						PointT pointTran(point.x*cos(theta)-point.y*sin(theta)+x, point.x*sin(theta)+point.y*cos(theta)+y, point.z);
 						NewtonsMethod(pointTran, theta, cell, g, H);
 					}
 				}
 				
-				PosDef(H, 0, 0, 0); // TODO: change the increment and max values to nonzero values
+				PosDef(H, 0, 5, 100); // TODO: change the increment and max values to nonzero values
 	
 				Eigen::MatrixXd T = -H.inverse()*g;
 	
