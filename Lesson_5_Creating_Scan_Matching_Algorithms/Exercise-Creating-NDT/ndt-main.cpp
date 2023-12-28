@@ -451,13 +451,6 @@ int main(){
 			pointT.y *= maxDelta/magT;
 			PointT point2(point.x+pointT.x, point.y+pointT.y,1);
 
-			PointT pointT(point.x * cos(T(2,0)) - point.y * sin(T(2,0)) + T(0,0) - point.x ,  point.x * sin(T(2,0)) + point.y * cos(T(2,0)) + T(1,0) - point.y , 1);
-			double magT = sqrt(pointT.x*pointT.x + pointT.y*pointT.y);
-			double maxDelta = 0.5; // CANDO: change the step size value
-			pointT.x *= maxDelta/magT;
-			pointT.y *= maxDelta/magT;
-			PointT point2(point.x+pointT.x, point.y+pointT.y,1);
-
 			renderRay(viewer, point, point2, "gradient_"+to_string(iteration), Color(1,1,1));
 			input->points.push_back(PointT(point2.x, point2.y, 1.0));
 			point = point2;
