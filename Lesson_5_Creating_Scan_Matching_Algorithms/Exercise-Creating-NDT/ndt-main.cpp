@@ -270,7 +270,7 @@ void NewtonsMethod(PointT point, double theta, Cell cell, Eigen::MatrixBase<Deri
 
 	// TODO: calcualte the 1 x 1 exponential matrix which uses q, and S inverse
 	Eigen::MatrixXd EXP(1,1);
-	EXP(0,0) = exp(-0.5 * q.transpose() * S_inv * q);
+	EXP(0,0) = exp(-0.5 * (q.transpose() * Si * q)(0,0) );
 
 	// TODO: calculate the matrix g which uses q, exponential, S inverse, and partial derivatives
 	Eigen::MatrixXd g(3,1);
