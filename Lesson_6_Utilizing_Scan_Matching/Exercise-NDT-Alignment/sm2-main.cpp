@@ -73,7 +73,7 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
   	Eigen::Matrix4d transformation_matrix = Eigen::Matrix4d::Identity ();
 
   	// align source with starting pose
-  	Eigen::Matrix4d initTransform = transform3D(startingPose.rotation.yaw, startingPose.rotation.pitch, startingPose.rotation.roll, startingPose.position.x, startingPose.position.y, startingPose.position.z);
+  	Eigen::Matrix4d initTransform = transform3D(startingPose.rotation.yaw, startingPose.rotation.pitch, startingPose.rotation.roll, startingPose.position.x, startingPose.position.y, startingPose.position.z).cast<float>();
   	PointCloudT::Ptr transformSource (new PointCloudT); 
   	pcl::transformPointCloud (*source, *transformSource, initTransform);
 
