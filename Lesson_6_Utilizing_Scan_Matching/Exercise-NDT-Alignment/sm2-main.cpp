@@ -134,7 +134,7 @@ Eigen::Matrix4d NDT(pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointX
 
 	//2. Set the ndt object's values
 	ndt.setMaximumIterations(iterations);
-	ndt.setInputSource(transformSource);
+	ndt.setInputSource(source);
 
 	//3. Call align on the ndt object	
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ndt (new pcl::PointCloud<pcl::PointXYZ>);  // NDT output point cloud
