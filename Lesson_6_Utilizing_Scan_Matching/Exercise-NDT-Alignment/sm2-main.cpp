@@ -141,7 +141,7 @@ Eigen::Matrix4d NDT(pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointX
 	ndt.align (*cloud_ndt, init_guess);
 
 	//4. If ndt converged get the ndt objects output transform and adjust it by the startingPose, return the adjusted transform
-	Eigen::Matrix4d transformation_matrix = ndt.getFinalTransformation ().cast<double>();
+	transformation_matrix = ndt.getFinalTransformation ().cast<double>();
 
 	//5. If ndt did not converge log the message and return original identity matrix
   	return transformation_matrix;
