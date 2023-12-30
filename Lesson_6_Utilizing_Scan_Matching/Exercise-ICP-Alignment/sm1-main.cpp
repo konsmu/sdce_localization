@@ -15,7 +15,7 @@ using namespace std;
 #include <pcl/registration/ndt.h>
 #include <pcl/console/time.h>
 
-enum Registration{ Off, Icp};
+enum Registration{Off, Icp};
 Registration matching = Off;
 
 Pose pose(Point(0,0,0), Rotate(0,0,0));
@@ -69,9 +69,46 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
   	Eigen::Matrix4d transformation_matrix = Eigen::Matrix4d::Identity ();
 
   	// TODO: Implement the PCL ICP function and return the correct transformation matrix
-  	// .....
-  	
-  	return transformation_matrix;
+
+	//1. Transform the source to the startingPose: align source with starting pose
+
+	//INPUT `pcl::PointCloud<pcl::PointXYZ>` input point cloud
+	//OUTPUT `pcl::PointCloud<pcl::PointXYZ>` output point cloud
+	//TRANSFORM `Eigen::Matrix4d` transformation matrix
+	//pcl::transformPointCloud (#INPUT, #OUTPUT,  #TRANSFORM );
+
+  	Eigen::Matrix4d initTransform = transform3D(startingPose.rotation.yaw, startingPose.rotation.pitch, startingPose.rotation.roll, startingPose.position.x, startingPose.position.y, startingPose.position.z);
+  	PointCloudT::Ptr transformSource(new PointCloudT); 
+  	pcl::transformPointCloud(*source, *transformSource, initTransform);
+
+
+	//2. Create the PCL icp object
+	pcl::IterativeClosestPoint<PointT, PointT> icp;
+
+
+	//3. Set the icp object's values
+	icp.setInputSource(transformSource);
+	icp.setInputTarget(target);
+	icp.setMaximumIterations(iterations);
+	icp.setMaxCorrespondenceDistance (2);
+
+
+	//4. Call align on the icp object	
+	PointCloudT::Ptr cloud_icp(new PointCloudT);  // ICP output point cloud
+  	icp.align(*cloud_icp);
+
+	//5. If icp converged get the icp objects output transform and adjust it by the startingPose, return the adjusted transform
+	if(icp.hasConverged()){
+		//std::cout << "\nICP has converged, score is " << icp.getFitnessScore () << std::endl;
+		transformation_matrix = icp.getFinalTransformation().cast<double>();
+		transformation_matrix = transformation_matrix * initTransform;
+	}
+	else {
+		std::cout << "WARNING: ICP did not converge" << std::endl;
+	}
+
+	//6. If icp did not converge log the message and return original identity matrix
+	return transformation_matrix;
 
 }
 
@@ -164,9 +201,18 @@ int main(){
 
 	typename pcl::PointCloud<PointT>::Ptr cloudFiltered (new pcl::PointCloud<PointT>);
 
-	cloudFiltered = scanCloud; // TODO: remove this line
+	//cloudFiltered = scanCloud; // TODO: remove this line
 	//TODO: Create voxel filter for input scan and save to cloudFiltered
-	// ......
+
+	//#INPUT  pcl::PointCloud<pcl::PointXYZ>::Ptr -> input point cloud pointer
+	//#OUTPUT pcl::PointCloud<pcl::PointXYZ>::Ptr -> output point cloud pointer
+	//#RES    double -> size of the cell, ~1m can be a good starting value to test
+	
+	double res = 0.5;
+	pcl::VoxelGrid<PointT> vg;
+	vg.setInputCloud(scanCloud);
+	vg.setLeafSize(res, res, res);
+	vg.filter(cloudFiltered);
 
 	PointCloudT::Ptr transformed_scan (new PointCloudT);
 	Tester tester;
@@ -177,7 +223,7 @@ int main(){
 
 		if( matching != Off){
 			if( matching == Icp)
-				transform = ICP(mapCloud, cloudFiltered, pose, 0); //TODO: change the number of iterations to positive number
+				transform = ICP(mapCloud, cloudFiltered, pose, 3); //TODO: change the number of iterations to positive number
   			pose = getPose(transform);
 			if( !tester.Displacement(pose) ){
 				if(matching == Icp)
