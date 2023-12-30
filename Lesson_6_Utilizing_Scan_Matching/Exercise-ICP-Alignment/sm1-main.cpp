@@ -223,7 +223,7 @@ int main(){
 
 		if( matching != Off){
 			if( matching == Icp)
-				transform = ICP(mapCloud, cloudFiltered, pose, 3); //TODO: change the number of iterations to positive number
+				transform = ICP(mapCloud, cloudFiltered, pose, 2); //TODO: change the number of iterations to positive number
   			pose = getPose(transform);
 			if( !tester.Displacement(pose) ){
 				if(matching == Icp)
