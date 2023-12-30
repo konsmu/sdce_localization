@@ -212,7 +212,7 @@ int main(){
 	pcl::VoxelGrid<PointT> vg;
 	vg.setInputCloud(scanCloud);
 	vg.setLeafSize(res, res, res);
-	vg.filter(cloudFiltered);
+	vg.filter(*cloudFiltered);
 
 	PointCloudT::Ptr transformed_scan (new PointCloudT);
 	Tester tester;
