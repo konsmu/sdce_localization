@@ -23,18 +23,21 @@
     ```
 
 
-3. Ensure that the **libcarla-install/** folder is present in your current working directory. The folder contains the static binaries built for the target VM workspace environment. If the folder is missing or corrupt, you can regenerate the files using the following command:
+3. Update the ** c3-main.cpp** file per the `TODO` markers and the classroom instructions. 
+
+
+4. Delete the folder `libcarla-install`.
+    ```bash
+    rm -r libcarla-install
+    ```
+
+5. Reinstall the folder `libcarla-install` using `make-libcarla-install.sh`. Ensure that the **libcarla-install/** folder is present in your current working directory. The folder contains the static binaries built for the target VM workspace environment. If the folder is missing or corrupt, you can regenerate the files using the following command:
     ```bash
     chmod +x make-libcarla-install.sh
     ./make-libcarla-install.sh
     ```
 
-
-
-4. Update the ** c3-main.cpp** file per the `TODO` markers and the classroom instructions. 
-
-
-5. Compile the project using the following commands. 
+6. Compile the project using the following commands. 
 
     ```bash
     cmake .
@@ -43,14 +46,14 @@
     These steps will generate the **clooud_loc** executable. 
 
 
-6. Open a new Terminal tab and execute the following command to start the simulator.
+7. Open a new Terminal tab and execute the following command to start the simulator.
 
     ```bash
     ./run_carla.sh
     ```  
 
 
-7. Open another Terminal tab and execute the following to run the project.
+8. Open another Terminal tab and execute the following to run the project.
     ```bash
     ./cloud_loc 
     ```

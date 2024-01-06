@@ -122,8 +122,8 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
 
 }
 
+// This code was reused from Lesson 6 (Exercise NDT Alignment)
 Eigen::Matrix4d NDT(pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt, PointCloudT::Ptr source, Pose startingPose, int iterations){
-
 	
 	pcl::console::TicToc time;
 	time.tic ();

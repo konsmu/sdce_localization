@@ -1,3 +1,4 @@
+// student: Konstantin Mueller
 
 #include <carla/client/Client.h>
 #include <carla/client/ActorBlueprint.h>
@@ -12,7 +13,7 @@
 #include <carla/client/Vehicle.h>
 
 //pcl code
-//#include "render/render.h"
+#include "render/render.h"
 
 namespace cc = carla::client;
 namespace cg = carla::geom;
@@ -99,6 +100,35 @@ void drawCar(Pose pose, int num, Color color, double alpha, pcl::visualization::
 	renderBox(viewer, box, num, color, alpha);
 }
 
+// This code was reused from Lesson 6 (Exercise NDT Alignment)
+Eigen::Matrix4d NDT(pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt, PointCloudT::Ptr source, Pose startingPose, int iterations){
+
+	//pcl::console::TicToc time;
+	//time.tic();
+
+	// TODO: Implement the PCL NDT function and return the correct transformation matrix
+
+	//1. Transform the source to the startingPose: align source with starting pose
+
+	Eigen::Matrix4f init_guess = transform3D(startingPose.rotation.yaw, startingPose.rotation.pitch, startingPose.rotation.roll, startingPose.position.x, startingPose.position.y, startingPose.position.z).cast<float>();
+
+	//2. Set the ndt object's values
+  	// Setting max number of registration iterations.
+  	ndt.setMaximumIterations(iterations);
+	ndt.setInputSource(source);
+  	
+	//3. Call align on the ndt object	
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ndt(new pcl::PointCloud<pcl::PointXYZ>);
+  	ndt.align(*cloud_ndt, init_guess);
+
+	//cout << "Normal Distributions Transform has converged:" << ndt.hasConverged () << " score: " << ndt.getFitnessScore () <<  " time: " << time.toc() <<  " ms" << endl;
+
+	//4. If ndt converged get the ndt objects output transform, return the transform
+	Eigen::Matrix4d transformation_matrix = ndt.getFinalTransformation().cast<double>();
+
+	return transformation_matrix;
+}
+
 int main(){
 
 	auto client = cc::Client("localhost", 2000);
@@ -161,6 +191,24 @@ int main(){
 			}
 		}
 	});
+
+
+	// This code was reused from Lesson 6 (Exercise NDT Alignment)
+
+	// 1. Create an NDT object and set object attributes
+	pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt;
+	// Setting minimum transformation difference for termination condition.
+  	ndt.setTransformationEpsilon(.0001);
+  	// Setting maximum step size for More-Thuente line search.
+  	ndt.setStepSize(1);
+  	// Setting Resolution of NDT grid structure (VoxelGridCovariance).
+  	ndt.setResolution(1);
+	// Setting input point cloud
+  	ndt.setInputTarget(mapCloud);
+
+	// Create a new object to hold the corrected point cloud after transformation
+	PointCloudT::Ptr transformed_scan (new PointCloudT);
+	////
 	
 	Pose poseRef(Point(vehicle->GetTransform().location.x, vehicle->GetTransform().location.y, vehicle->GetTransform().location.z), Rotate(vehicle->GetTransform().rotation.yaw * pi/180, vehicle->GetTransform().rotation.pitch * pi/180, vehicle->GetTransform().rotation.roll * pi/180));
 	double maxError = 0;
@@ -202,14 +250,26 @@ int main(){
 			new_scan = true;
 			// TODO: (Filter scan using voxel filter)
 
+			// Create new vooxel grid filter object and set input point cloud and resolution
+			pcl::VoxelGrid<PointT> vg;
+			vg.setInputCloud(scanCloud);
+			double res = 0.5;
+			vg.setLeafSize(res, res, res);
+			vg.filter(*cloudFiltered);
+
 			// TODO: Find pose transform by using ICP or NDT matching
 			//pose = ....
 
+			Eigen::Matrix4d transform = transform3D(pose.rotation.yaw, pose.rotation.pitch, pose.rotation.roll, pose.position.x, pose.position.y, pose.position.z);
+			transform = NDT(ndt, cloudFiltered, pose, 3);
+  			pose = getPose(transform);
+
 			// TODO: Transform scan so it aligns with ego's actual pose and render that scan
+			pcl::transformPointCloud (*cloudFiltered, *transformed_scan, transform);
 
 			viewer->removePointCloud("scan");
 			// TODO: Change `scanCloud` below to your transformed scan
-			renderPointCloud(viewer, scanCloud, "scan", Color(1,0,0) );
+			renderPointCloud(viewer, transformed_scan, "scan", Color(1,0,0) );
 
 			viewer->removeAllShapes();
 			drawCar(pose, 1,  Color(0,1,0), 0.35, viewer);
