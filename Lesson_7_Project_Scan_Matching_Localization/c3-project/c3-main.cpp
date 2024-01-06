@@ -311,6 +311,8 @@ int main(){
 			vg.filter(*cloudFiltered);
 			*/
 
+			cloudFiltered = scanCloud;
+
 			// TODO: Find pose transform by using ICP or NDT matching
 			//pose = ....
 
