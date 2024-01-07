@@ -142,7 +142,6 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
   	PointCloudT::Ptr transformSource (new PointCloudT); 
   	pcl::transformPointCloud (*source, *transformSource, initTransform);
 
-	renderPointCloud(viewer, transformSource, "transformSource", Color(0,1,1) );
 
 	
 	pcl::console::TicToc time;
@@ -327,8 +326,12 @@ int main(){
 			vg.filter(*cloudFiltered);
 
 			renderPointCloud(viewer, cloudFiltered, "filter", Color(0,1,0) );
-
 			
+			Eigen::Matrix4d initTransform = transform3D(pose.rotation.yaw, pose.rotation.pitch, pose.rotation.roll, pose.position.x, pose.position.y, pose.position.z);
+			PointCloudT::Ptr transformedSource (new PointCloudT); 
+			pcl::transformPointCloud (*cloudFiltered, *transformedSource, initTransform);
+			renderPointCloud(viewer, transformedSource, "transformedSource", Color(0,1,1) );
+
 
 			//cloudFiltered = scanCloud;
 
