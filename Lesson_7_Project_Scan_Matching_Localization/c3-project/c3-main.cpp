@@ -327,7 +327,7 @@ int main(){
 
 			renderPointCloud(viewer, cloudFiltered, "filter", Color(0,1,0) );
 			
-			pose.rotation.yaw += pi/2;
+			pose.rotation.yaw -= pi/2;
 
 			Eigen::Matrix4d initTransform = transform3D(pose.rotation.yaw, pose.rotation.pitch, pose.rotation.roll, pose.position.x, pose.position.y, pose.position.z);
 			PointCloudT::Ptr transformedSource (new PointCloudT); 
