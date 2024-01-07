@@ -135,31 +135,26 @@ Eigen::Matrix4d NDT(pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointX
 Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose startingPose, int iterations){
 
 	// Defining a rotation matrix and translation vector
-  	Eigen::Matrix4d transformation_matrix = Eigen::Matrix4d::Identity ();
+  	//Eigen::Matrix4d transformation_matrix = Eigen::Matrix4d::Identity ();
 
   	// align source with starting pose
   	Eigen::Matrix4d initTransform = transform3D(startingPose.rotation.yaw, startingPose.rotation.pitch, startingPose.rotation.roll, startingPose.position.x, startingPose.position.y, startingPose.position.z);
   	PointCloudT::Ptr transformSource (new PointCloudT); 
   	pcl::transformPointCloud (*source, *transformSource, initTransform);
-
-  	/*
-  	if( count == 0)
-  		renderPointCloud(viewer, transformSource, "transform_scan_"+to_string(count), Color(1,0,1)); // render corrected scan
-  	*/
 	
 	pcl::console::TicToc time;
   	time.tic ();
   	pcl::IterativeClosestPoint<PointT, PointT> icp;
   	icp.setMaximumIterations (iterations);
-  	icp.setInputSource (transformSource);
-  	icp.setInputTarget (target);
-	icp.setMaxCorrespondenceDistance (2);
+  	icp.setInputSource(transformSource);
+  	icp.setInputTarget(target);
+	//icp.setMaxCorrespondenceDistance (2);
 	//icp.setTransformationEpsilon(0.001);
 	//icp.setEuclideanFitnessEpsilon(.05);
 	//icp.setRANSACOutlierRejectionThreshold (10);
 
   	PointCloudT::Ptr cloud_icp (new PointCloudT);  // ICP output point cloud
-  	icp.align (*cloud_icp);
+  	icp.align(*cloud_icp);
   	//std::cout << "Applied " << iterations << " ICP iteration(s) in " << time.toc () << " ms" << std::endl;
 
 	/*
@@ -183,7 +178,7 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
   		cout << "WARNING: ICP did not converge" << endl;
 	*/
 
-	transformation_matrix = icp.getFinalTransformation ().cast<double>();
+	Eigen::Matrix4d transformation_matrix = icp.getFinalTransformation().cast<double>();
   	transformation_matrix =  transformation_matrix * initTransform;
   	return transformation_matrix;
 
@@ -253,7 +248,7 @@ int main(){
 		}
 	});
 
-
+/*
 	// This code was reused from Lesson 6 (Exercise NDT Alignment)
 
 	// 1. Create an NDT object and set object attributes
@@ -267,6 +262,7 @@ int main(){
 	// Setting input point cloud
   	ndt.setInputTarget(mapCloud);
 
+*/
 	////
 	
 	Pose poseRef(Point(vehicle->GetTransform().location.x, vehicle->GetTransform().location.y, vehicle->GetTransform().location.z), Rotate(vehicle->GetTransform().rotation.yaw * pi/180, vehicle->GetTransform().rotation.pitch * pi/180, vehicle->GetTransform().rotation.roll * pi/180));
@@ -331,14 +327,16 @@ int main(){
 			//pose = ....
 
 			
-			Eigen::Matrix4d transform = NDT(ndt, cloudFiltered, pose, 4);
-  			pose = getPose(transform);
+			//Eigen::Matrix4d transform = NDT(ndt, cloudFiltered, pose, 4);
+			Eigen::Matrix4d align_transform = ICP(mapCloud, cloudFiltered, pose, 4);
+
+  			pose = getPose(align_transform);
 
 			// TODO: Transform scan so it aligns with ego's actual pose and render that scan
 			
 			// Create a new object to hold the corrected point cloud after transformation
-			PointCloudT::Ptr transformed_scan (new PointCloudT);
-			pcl::transformPointCloud(*cloudFiltered, *transformed_scan, transform);
+			PointCloudT::Ptr transformed_scan(new PointCloudT);
+			pcl::transformPointCloud(*cloudFiltered, *transformed_scan, align_transform);
 
 			viewer->removePointCloud("scan");
 			// TODO: Change `scanCloud` below to your transformed scan
