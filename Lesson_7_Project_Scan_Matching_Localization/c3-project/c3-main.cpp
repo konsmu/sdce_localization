@@ -186,7 +186,7 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
 
 int main(){
 
-	int num_scan = 0;
+	//int num_scan = 0;
 	auto client = cc::Client("localhost", 2000);
 	client.SetTimeout(2s);
 	auto world = client.GetWorld();
@@ -303,12 +303,15 @@ int main(){
 		if(!new_scan){
 			
 			new_scan = true;
+
+			/*
 			num_scan += 1;
 			// According to the task description, the ground truth is used as the initial pose.
 			if(num_scan == 1){
 				pose.rotation = truePose.rotation;
 				pose.position = truePose.position;
 			}
+			*/
 			// TODO: (Filter scan using voxel filter)
 
 			// Create new vooxel grid filter object and set input point cloud and resolution
@@ -326,9 +329,22 @@ int main(){
 			// TODO: Find pose transform by using ICP or NDT matching
 			//pose = ....
 
+				// This code was reused from Lesson 6 (Exercise NDT Alignment)
+
+			// 1. Create an NDT object and set object attributes
+			pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt;
+			// Setting minimum transformation difference for termination condition.
+			ndt.setTransformationEpsilon(.0001);
+			// Setting maximum step size for More-Thuente line search.
+			ndt.setStepSize(1);
+			// Setting Resolution of NDT grid structure (VoxelGridCovariance).
+			ndt.setResolution(5);
+			// Setting input point cloud
+			ndt.setInputTarget(mapCloud);
+
 			
-			//Eigen::Matrix4d transform = NDT(ndt, cloudFiltered, pose, 4);
-			Eigen::Matrix4d align_transform = ICP(mapCloud, cloudFiltered, pose, 4);
+			Eigen::Matrix4d align_transform = NDT(ndt, cloudFiltered, pose, 100);
+			//Eigen::Matrix4d align_transform = ICP(mapCloud, cloudFiltered, pose, 4);
 
   			pose = getPose(align_transform);
 
@@ -343,7 +359,7 @@ int main(){
 			renderPointCloud(viewer, transformed_scan, "scan", Color(1,0,0) );
 
 			viewer->removeAllShapes();
-			drawCar(pose, 1,  Color(0,1,0), 0.35, viewer);
+			drawCar(pose, 1, Color(0,1,0), 0.35, viewer);
           
           	double poseError = sqrt( (truePose.position.x - pose.position.x) * (truePose.position.x - pose.position.x) + (truePose.position.y - pose.position.y) * (truePose.position.y - pose.position.y) );
 			if(poseError > maxError)
