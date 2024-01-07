@@ -141,6 +141,9 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
   	Eigen::Matrix4d initTransform = transform3D(startingPose.rotation.yaw, startingPose.rotation.pitch, startingPose.rotation.roll, startingPose.position.x, startingPose.position.y, startingPose.position.z);
   	PointCloudT::Ptr transformSource (new PointCloudT); 
   	pcl::transformPointCloud (*source, *transformSource, initTransform);
+
+	renderPointCloud(viewer, transformSource, "transformSource", Color(0,1,1) );
+
 	
 	pcl::console::TicToc time;
   	time.tic ();
@@ -346,8 +349,8 @@ int main(){
 			ndt.setInputTarget(mapCloud);
 
 			
-			Eigen::Matrix4d align_transform = NDT(ndt, cloudFiltered, pose, 100);
-			//Eigen::Matrix4d align_transform = ICP(mapCloud, cloudFiltered, pose, 4);
+			//Eigen::Matrix4d align_transform = NDT(ndt, cloudFiltered, pose, 100);
+			Eigen::Matrix4d align_transform = ICP(mapCloud, cloudFiltered, pose, 4);
 
   			pose = getPose(align_transform);
 
