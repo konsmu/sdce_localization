@@ -322,6 +322,9 @@ int main(){
 			double res = 0.5;
 			vg.setLeafSize(res, res, res);
 			vg.filter(*cloudFiltered);
+
+			renderPointCloud(viewer, cloudFiltered, "filter", Color(0,1,0) );
+
 			
 
 			//cloudFiltered = scanCloud;
