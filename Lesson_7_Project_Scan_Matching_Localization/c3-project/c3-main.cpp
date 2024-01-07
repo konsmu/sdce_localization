@@ -327,7 +327,7 @@ int main(){
 
 			renderPointCloud(viewer, cloudFiltered, "filter", Color(0,1,0) );
 			
-			pose.rotation.yaw -= pi/2;
+			//////pose.rotation.yaw -= pi/2;
 
 			Eigen::Matrix4d initTransform = transform3D(pose.rotation.yaw, pose.rotation.pitch, pose.rotation.roll, pose.position.x, pose.position.y, pose.position.z);
 			PointCloudT::Ptr transformedSource (new PointCloudT); 
@@ -367,7 +367,7 @@ int main(){
 
 			viewer->removePointCloud("scan");
 			// TODO: Change `scanCloud` below to your transformed scan
-			renderPointCloud(viewer, transformed_scan, "scan", Color(1,0,0) );
+			//////////////renderPointCloud(viewer, transformed_scan, "scan", Color(1,0,0) );
 
 			viewer->removeAllShapes();
 			drawCar(pose, 1, Color(0,1,0), 0.35, viewer);
