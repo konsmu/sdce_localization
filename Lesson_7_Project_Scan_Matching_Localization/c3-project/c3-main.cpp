@@ -110,6 +110,9 @@ Eigen::Matrix4d NDT(pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointX
 
 	//1. Transform the source to the startingPose: align source with starting pose
 
+
+	// This code was reused from Lesson 6 (Exercise NDT Alignment)
+
 	Eigen::Matrix4f init_guess = transform3D(startingPose.rotation.yaw, startingPose.rotation.pitch, startingPose.rotation.roll, startingPose.position.x, startingPose.position.y, startingPose.position.z).cast<float>();
 
 	//2. Set the ndt object's values
@@ -159,6 +162,7 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
   	icp.align (*cloud_icp);
   	//std::cout << "Applied " << iterations << " ICP iteration(s) in " << time.toc () << " ms" << std::endl;
 
+	/*
   	if (icp.hasConverged ())
   	{
   		//std::cout << "\nICP has converged, score is " << icp.getFitnessScore () << std::endl;
@@ -167,22 +171,27 @@ Eigen::Matrix4d ICP(PointCloudT::Ptr target, PointCloudT::Ptr source, Pose start
   		//print4x4Matrix(transformation_matrix);
 
 
-  		/*
+  		
   		PointCloudT::Ptr corrected_scan (new PointCloudT);
   		pcl::transformPointCloud (*source, *corrected_scan, transformation_matrix);
   		if( count == 1)
   			renderPointCloud(viewer, corrected_scan, "corrected_scan_"+to_string(count), Color(0,1,1)); // render corrected scan
-		*/
+		
   		return transformation_matrix;
   	}
 	else
   		cout << "WARNING: ICP did not converge" << endl;
+	*/
+
+	transformation_matrix = icp.getFinalTransformation ().cast<double>();
+  	transformation_matrix =  transformation_matrix * initTransform;
   	return transformation_matrix;
 
 }
 
 int main(){
 
+	int num_scan = 0;
 	auto client = cc::Client("localhost", 2000);
 	client.SetTimeout(2s);
 	auto world = client.GetWorld();
@@ -232,8 +241,9 @@ int main(){
 		if(new_scan){
 			auto scan = boost::static_pointer_cast<csd::LidarMeasurement>(data);
 			for (auto detection : *scan){
-				if((detection.x*detection.x + detection.y*detection.y + detection.z*detection.z) > 8.0){
-					pclCloud.points.push_back(PointT(detection.x, detection.y, detection.z));
+				// ACHTUNG: ...point... eingefügt
+				if((detection.point.x*detection.point.x + detection.point.y*detection.point.y + detection.point.z*detection.point.z) > 8.0){
+					pclCloud.points.push_back(PointT(detection.point.x, detection.point.y, detection.point.z));
 				}
 			}
 			if(pclCloud.points.size() > 5000){ // CANDO: Can modify this value to get different scan resolutions
@@ -258,8 +268,6 @@ int main(){
 	// Setting input point cloud
   	ndt.setInputTarget(mapCloud);
 
-	// Create a new object to hold the corrected point cloud after transformation
-	PointCloudT::Ptr transformed_scan (new PointCloudT);
 	////
 	
 	Pose poseRef(Point(vehicle->GetTransform().location.x, vehicle->GetTransform().location.y, vehicle->GetTransform().location.z), Rotate(vehicle->GetTransform().rotation.yaw * pi/180, vehicle->GetTransform().rotation.pitch * pi/180, vehicle->GetTransform().rotation.roll * pi/180));
@@ -300,28 +308,38 @@ int main(){
 		if(!new_scan){
 			
 			new_scan = true;
+			num_scan += 1;
+			// According to the task description, the ground truth is used as the initial pose.
+			if(num_scan == 1){
+				pose.rotation = truePose.rotation;
+				pose.position = truePose.position;
+			}
 			// TODO: (Filter scan using voxel filter)
 
 			// Create new vooxel grid filter object and set input point cloud and resolution
-			/*
+			
 			pcl::VoxelGrid<PointT> vg;
+			typename pcl::PointCloud<PointT>::Ptr cloudFiltered (new pcl::PointCloud<PointT>);
 			vg.setInputCloud(scanCloud);
 			double res = 0.5;
 			vg.setLeafSize(res, res, res);
 			vg.filter(*cloudFiltered);
-			*/
+			
 
-			cloudFiltered = scanCloud;
+			//cloudFiltered = scanCloud;
 
 			// TODO: Find pose transform by using ICP or NDT matching
 			//pose = ....
 
-			Eigen::Matrix4d transform = transform3D(pose.rotation.yaw, pose.rotation.pitch, pose.rotation.roll, pose.position.x, pose.position.y, pose.position.z);
-			transform = NDT(ndt, cloudFiltered, pose, 3);
+			
+			Eigen::Matrix4d transform = NDT(ndt, cloudFiltered, pose, 4);
   			pose = getPose(transform);
 
 			// TODO: Transform scan so it aligns with ego's actual pose and render that scan
-			pcl::transformPointCloud (*cloudFiltered, *transformed_scan, transform);
+			
+			// Create a new object to hold the corrected point cloud after transformation
+			PointCloudT::Ptr transformed_scan (new PointCloudT);
+			pcl::transformPointCloud(*cloudFiltered, *transformed_scan, transform);
 
 			viewer->removePointCloud("scan");
 			// TODO: Change `scanCloud` below to your transformed scan
