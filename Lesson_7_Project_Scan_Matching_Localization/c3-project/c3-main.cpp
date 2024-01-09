@@ -251,7 +251,7 @@ int main(){
 		}
 	});
 
-/*
+
 	// This code was reused from Lesson 6 (Exercise NDT Alignment)
 
 	// 1. Create an NDT object and set object attributes
@@ -265,7 +265,7 @@ int main(){
 	// Setting input point cloud
   	ndt.setInputTarget(mapCloud);
 
-*/
+
 	////
 	
 	Pose poseRef(Point(vehicle->GetTransform().location.x, vehicle->GetTransform().location.y, vehicle->GetTransform().location.z), Rotate(vehicle->GetTransform().rotation.yaw * pi/180, vehicle->GetTransform().rotation.pitch * pi/180, vehicle->GetTransform().rotation.roll * pi/180));
@@ -330,10 +330,10 @@ int main(){
 			
 			//////pose.rotation.yaw -= pi/2;
 
-			Eigen::Matrix4d initTransform = transform3D(pose.rotation.yaw, pose.rotation.pitch, pose.rotation.roll, pose.position.x, pose.position.y, pose.position.z);
-			PointCloudT::Ptr transformedSource (new PointCloudT); 
-			pcl::transformPointCloud (*cloudFiltered, *transformedSource, initTransform);
-			renderPointCloud(viewer, transformedSource, "transformedSource", Color(0,1,1) );
+			//Eigen::Matrix4d initTransform = transform3D(pose.rotation.yaw, pose.rotation.pitch, pose.rotation.roll, pose.position.x, pose.position.y, pose.position.z);
+			//PointCloudT::Ptr transformedSource (new PointCloudT); 
+			//pcl::transformPointCloud (*cloudFiltered, *transformedSource, initTransform);
+			//renderPointCloud(viewer, transformedSource, "transformedSource", Color(0,1,1) );
 
 
 			//cloudFiltered = scanCloud;
@@ -344,19 +344,19 @@ int main(){
 				// This code was reused from Lesson 6 (Exercise NDT Alignment)
 
 			// 1. Create an NDT object and set object attributes
-			pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt;
+			//pcl::NormalDistributionsTransform<pcl::PointXYZ, pcl::PointXYZ> ndt;
 			// Setting minimum transformation difference for termination condition.
-			ndt.setTransformationEpsilon(.0001);
+			//ndt.setTransformationEpsilon(.0001);
 			// Setting maximum step size for More-Thuente line search.
-			ndt.setStepSize(1);
+			//ndt.setStepSize(1);
 			// Setting Resolution of NDT grid structure (VoxelGridCovariance).
-			ndt.setResolution(5);
+			//ndt.setResolution(5);
 			// Setting input point cloud
-			ndt.setInputTarget(mapCloud);
+			//ndt.setInputTarget(mapCloud);
 
 			
-			//Eigen::Matrix4d align_transform = NDT(ndt, cloudFiltered, pose, 100);
-			Eigen::Matrix4d align_transform = ICP(mapCloud, cloudFiltered, pose, 4);
+			Eigen::Matrix4d align_transform = NDT(ndt, cloudFiltered, pose, 100);
+			//Eigen::Matrix4d align_transform = ICP(mapCloud, cloudFiltered, pose, 4);
 
   			pose = getPose(align_transform);
 
